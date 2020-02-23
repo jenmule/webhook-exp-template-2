@@ -1,0 +1,81 @@
+#%RAML 1.0
+title: Webhook API
+version: v1
+mediaType: application/json
+documentation:
+ - title: Home
+   content: |
+     Welcome to Webhook API Documentation
+
+traits: 
+  client-id-required: !include traits/client-id-enforcement.raml
+  
+uses: 
+  Types: datatypes/types.raml
+              
+/webhooks/outbound:  
+  is: [client-id-required]       
+  post:
+    description: Add a new client
+    body: 
+          application/json:
+            type: Types.ClientRegister
+            examples: !include examples/post-outbound-wh-clients.raml
+    responses: 
+      201:
+        body: 
+          application/json:
+            example: { "message": "client added" }               
+                
+/webhooks/{ClientName}/outbound:
+  is: [client-id-required]   
+  get:
+    description: List registered client
+    headers:
+      wh_client_secret:
+        type: string
+    responses: 
+      200:
+        body: 
+          application/json:
+            example: |
+              {"client":"intelicom", "endpoint_url":"https://intelicom.com/events", "events":["new_device_record","device_record_deleted"]}
+  
+  delete:
+    description: Delete a client
+    headers:
+      wh_client_secret:
+        type: string
+    responses: 
+      200:
+        body: 
+          application/json:
+            example: |
+              {"status":"202", "message":"client removed"}
+
+/webhooks/outbound/events:
+  is: [client-id-required]   
+  post:
+    description: Publish an event
+    body: 
+          application/json:
+            type: Types.Events
+            examples: !include examples/post-outbound-wh-events.raml
+    responses: 
+      200:
+        body: 
+          application/json:
+            example: |
+              {"status":"201", "message":"event published"}
+              
+               
+/webhooks/inbound:
+  is: [client-id-required]   
+  post:
+    description: Submit an external event for processing
+    responses: 
+      201:
+        body: 
+          application/json:
+            example: |
+              {"status":"201"}

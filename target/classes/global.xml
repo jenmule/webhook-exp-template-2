@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="189877cb-2abb-486e-b68e-80e56e0872d9" file="${mule-env}-config.yaml" />
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="2921f89c-3bf0-46ab-a247-0151df90a128" />
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="d91d2213-7798-48c4-8776-d64f444a7981" >
+		<http:request-connection host="${publisher.host}" port="${publisher.port}" />
+	</http:request-config>
+	<anypoint-mq:config name="Anypoint_MQ_Config" doc:name="Anypoint MQ Config" doc:id="20223fec-9d89-422f-9d1f-c5284410709a" >
+		<anypoint-mq:connection clientId="e6d055b7360d4f549df79e231dacc0dd" clientSecret="9c15fFEbcC9d441C966364Ad94Dc29C6" url="https://mq-eu-west-1.anypoint.mulesoft.com/api/v1"/>
+	</anypoint-mq:config>
+	<http:listener-config name="webhook-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8080" />
+    </http:listener-config>
+    <apikit:config name="webhook-config" raml="webhook.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+</mule>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="impl-post:\webhooks\outbound" doc:id="4f99b1dc-6837-4919-a009-1aa191e04f4b">
+		<validation:is-url doc:name="Is URL"
+			doc:id="bd34be77-00a5-4cbc-9421-f1553a43e3d4" url="#[payload.ClientEndpoint]"
+			message="Invalid endpoint URL" config-ref="Validation_Config" />
+		<http:request method="POST" doc:name="Request" doc:id="ee83d55b-7979-4e3f-8b27-f0d81b410e41" config-ref="HTTP_Request_configuration" path="/api/webhooks/outbound"/>
+	</flow>
+	<flow name="impl-delete:\webhooks\(ClientName)\outbound" doc:id="e36d2e25-a90f-4dda-aef8-1b090dc05026" >
+        <http:request method="DELETE" doc:name="Request" doc:id="abd1ffd2-5974-4fd0-8510-0a6191eb427d" config-ref="HTTP_Request_configuration" path='#["/api/webhooks/"++ attributes.uriParams.ClientName ++ "/outbound"]'>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	wh_client_secret : attributes.headers.wh_client_secret
+}]]]></http:headers>
+		</http:request>
+	</flow>
+	<flow name="impl-get:\webhooks\(ClientName)\outbound" doc:id="90151140-c439-4997-8138-972c210122f7" >
+        <http:request method="GET" doc:name="Request" doc:id="c6149ab9-0998-483b-a9d7-d31eb2b22613" config-ref="HTTP_Request_configuration" path='#["/api/webhooks/"++ attributes.uriParams.ClientName ++ "/outbound"]'>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	wh_client_secret : attributes.headers.wh_client_secret
+}]]]></http:headers>
+		</http:request>
+	</flow>
+	<flow name="impl-post:\webhooks\outbound\events" doc:id="07e2426b-f336-4121-a532-d48d8197c14b" >
+		<anypoint-mq:publish doc:name="Publish" doc:id="368c24ff-9280-44f0-bbcc-1e9e3d7ee15e" config-ref="Anypoint_MQ_Config" destination="${mq.event_queue}"/>
+		<ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="5424e75a-b0e0-4607-ba2a-ae41f326c4ad">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{"status":"201", "message":"event published"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+	</flow>
+	<flow name="impl-post:\webhooks\inbound" doc:id="37aa48fd-e86d-4f61-bd4d-4b49f5c7dbf7" >
+		<anypoint-mq:publish doc:name="Publish" doc:id="e28880be-27e7-41bc-9498-7b451a86b66a" config-ref="Anypoint_MQ_Config" destination="${mq.event_in_queue}"/>
+		<ee:transform doc:name="Transform Message" doc:id="e9701e84-8b86-41e8-8956-27e8d64f177f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{"status":"201", "message":"event accepted"}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

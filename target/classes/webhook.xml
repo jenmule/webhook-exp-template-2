@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">    
+    <flow name="webhook-main">
+        <http:listener config-ref="webhook-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="webhook-config" />
+        <error-handler ref="errorError_Handler" />
+    </flow>
+    <flow name="webhook-console">
+        <http:listener config-ref="webhook-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="webhook-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>   
+    <flow name="post:\webhooks\outbound:application\json:webhook-config">
+		<flow-ref doc:name="impl-post:\webhooks\outbound" doc:id="1696c496-e2a5-494d-a1ae-16ba85b6e767" name="impl-post:\webhooks\outbound"/>
+    </flow>
+    <flow name="delete:\webhooks\(ClientName)\outbound:webhook-config">
+		<flow-ref doc:name="impl-delete:\webhooks\(ClientName)\outbound" doc:id="7c12c511-925d-4b28-a721-b4c2ac8ad347" name="impl-delete:\webhooks\(ClientName)\outbound"/>
+    </flow>
+    <flow name="get:\webhooks\(ClientName)\outbound:webhook-config">
+		<flow-ref doc:name="impl-get:\webhooks\(ClientName)\outbound" doc:id="dcaff288-f0f7-4818-8585-de27d6d382a5" name="impl-get:\webhooks\(ClientName)\outbound"/>
+    </flow>
+    <flow name="post:\webhooks\outbound\events:application\json:webhook-config">
+		<flow-ref doc:name="impl-post:\webhooks\outbound\events" doc:id="f8586afd-46bf-4f9e-9fab-f0097960f2c0" name="impl-post:\webhooks\outbound\events"/>		
+    </flow> 
+        <flow name="post:\webhooks\inbound:application\json:webhook-config">
+		<flow-ref doc:name="impl-post:\webhooks\inbound" doc:id="42b55065-55d1-4364-bdfb-b0ec7667eb24" name="impl-post:\webhooks\inbound"/>		
+    </flow> 
+</mule>

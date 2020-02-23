@@ -1,0 +1,7 @@
+mq:
+  event_queue: "webhook-publish-test"
+  event_in_queue: "webhook-inbound-test"
+  
+publisher:
+  host: "localhost"
+  port: "8081"
